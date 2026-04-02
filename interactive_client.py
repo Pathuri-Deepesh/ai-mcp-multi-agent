@@ -1,7 +1,12 @@
 """
 Interactive MCP Agent Client - A REPL-style interface for multi-server AI agent.
 
-Users can ask questions interactively in the command prompt. The agent:
+Uses official MCP servers for:
+- Math operations: Custom FastMCP server (mathserver.py)
+- Weather data: Custom FastMCP server with OpenWeatherMap API (weather.py)
+- Web search: Official duckduckgo-mcp-server (installed via uvx)
+
+Users can ask questions interactively. The agent:
 1. Loads available tools from all MCP servers
 2. Listens for user queries
 3. Decides which tool to use for each query
@@ -173,9 +178,9 @@ async def initialize_agent():
                     "transport": "stdio",
                 },
                 "search": {
-                    "command": "python",
-                    "args": ["search_server.py"],
-                    "transport": "stdio",
+                    "command": "uvx",
+                    "args": ["duckduckgo-mcp-server"],
+                    "transport": "stdio"
                 }
             }
         )
