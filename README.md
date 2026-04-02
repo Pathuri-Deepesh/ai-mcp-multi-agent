@@ -7,14 +7,14 @@ A sophisticated Python framework demonstrating the integration of multiple **Mod
 - **Multi-Server MCP Integration**: Seamlessly connect multiple MCP servers (math, weather, and web search) to a single agent
 - **Real API Integrations**: 
   - OpenWeatherMap for live weather data
-  - DuckDuckGo for web search and news articles
+  - Official DuckDuckGo MCP server for web search and news articles
 - **LangChain Agent Framework**: Intelligent agent orchestration using Claude AI (Haiku model)
 - **Error Handling & Logging**: Comprehensive error handling with structured logging throughout
 - **Type Safety**: Full type hints for better code quality and IDE support
 - **Async/Await Support**: Non-blocking asynchronous operations for better performance
-- **Retry Logic**: Exponential backoff for handling rate limiting gracefully
 - **Interactive REPL**: Command-line interface for testing queries interactively
 - **Production-Ready Code**: Follows best practices with docstrings, validation, and error recovery
+- **Official Servers**: Uses maintained community/official MCP servers where available
 
 ## 📋 What is MCP (Model Context Protocol)?
 
@@ -38,47 +38,37 @@ LangChain is a framework for building applications with large language models. I
 ### Available MCP Servers
 
 #### Math Server (`mathserver.py`)
-Provides basic arithmetic operations with validation and error handling:
+Custom MCP server providing basic arithmetic operations with validation and error handling:
 - **add(a, b)**: Add two numbers
 - **subtract(a, b)**: Subtract two numbers
 - **multiply(a, b)**: Multiply two numbers
 - **divide(a, b)**: Divide two numbers (with zero-division protection)
 
 #### Weather Server (`weather.py`)
-Provides real-time weather information via OpenWeatherMap API:
+Custom MCP server providing real-time weather information via OpenWeatherMap API:
 - **get_weather(location)**: Get current weather for a given location
 - Returns: Temperature, humidity, wind speed, and weather conditions
 - Live API integration with error handling for network failures
 
-#### Search Server (`search_server.py`)
-Provides web search and news search via DuckDuckGo (no API key required):
-- **search(query, max_results)**: Search the web for information
-  - Parameters: query (string), max_results (1-10, default 5)
+#### Official DuckDuckGo Search Server
+Official community-maintained MCP server for web search and news (installed via `uvx`):
+- **search(query)**: Search the web for information
   - Returns: Title, description, and URL for each result
   - Use case: Finding tutorials, documentation, general information
-- **search_news(query, max_results)**: Search for recent news articles
-  - Parameters: query (string), max_results (1-10, default 3)
+- **search_news(query)**: Search for recent news articles
   - Returns: Headline, source, date, and URL for each article
   - Use case: Finding latest news, trends, current events
 - **Features**:
-  - No API key required - uses free DuckDuckGo service
-  - Intelligent retry logic with exponential backoff for rate limiting (2s, 4s, 8s delays)
-  - Graceful error messages when rate limits are exceeded
-  - Input validation and sanitization
+  - Official, community-maintained server
+  - No API key required
+  - Automatic updates via uvx
   - Real-time web scraping for fresh results
 
-### Client Agent (`client.py`)
-Orchestrates all servers using a LangChain agent powered by Claude Haiku to:
-- Execute complex calculations with step-by-step reasoning
-- Query weather information
-- Search the web for information
-- Intelligently choose which tools to use for each query
-
 ### Interactive Client (`interactive_client.py`)
-Provides a REPL-style command-line interface for testing:
+Main entry point providing a REPL-style command-line interface for testing:
 - Interactive query entry
 - Help command to list available tools
-- Tools command to show categorized tools
+- Tools command to show categorized tools (Math, Weather, Search)
 - Clear command to reset context
 - Exit command to quit the program
 - Real-time tool responses with formatted output
@@ -91,6 +81,7 @@ Provides a REPL-style command-line interface for testing:
 - pip or uv package manager
 - ANTHROPIC_API_KEY (from [Anthropic Console](https://console.anthropic.com))
 - OPENWEATHER_API_KEY (optional, from [OpenWeatherMap](https://openweathermap.org/api))
+- uvx (for running the official DuckDuckGo MCP server)
 
 ### Installation
 
@@ -124,22 +115,7 @@ Provides a REPL-style command-line interface for testing:
 
 ### Running the Project
 
-#### Option 1: Automated Query Execution
-Execute sample queries with the agent:
-
-```bash
-python client.py
-```
-
-This will:
-1. Initialize connections to all MCP servers (math, weather, search)
-2. Create a LangChain agent powered by Claude Haiku
-3. Execute a complex math calculation: `(5 + 3) + (12 / 3) - (2 * 4)`
-4. Execute a weather query: `What is the weather in London?`
-5. Execute a search query: `What are the latest advancements in AI?`
-6. Display the agent's reasoning and responses
-
-#### Option 2: Interactive REPL (Recommended)
+#### Interactive REPL (Recommended)
 Use the interactive client for real-time queries:
 
 ```bash
@@ -162,23 +138,33 @@ You: exit
 **Interactive Client:**
 ```
 ═══════════════════════════════════════════════════════════
-🤖 MCP Multi-Agent REPL
+🤖  INTERACTIVE MCP AGENT
 ═══════════════════════════════════════════════════════════
 
-Available Commands: help, tools, clear, exit
+This agent has access to multiple tools:
+  📐 MATH TOOLS: add, subtract, multiply, divide
+  🌤️  WEATHER: get weather for any location
+
+Just ask questions naturally, e.g.:
+  'What is 5 + 3?'
+  'What is the weather in London?'
+  'Calculate (100 + 50) * 2'
+
+Type 'help' for commands, 'exit' to quit
+═══════════════════════════════════════════════════════════
 
 You: What is the weather in London?
 
-🔍 Processing query...
+⏳ Processing your query...
 
-✅ Response: The current weather in London is 15°C with scattered clouds. 
+Agent: The current weather in London is 15°C with scattered clouds. 
 Humidity is 72% and wind speed is 8 km/h.
 
 You: search for python async programming
 
-🔍 Processing query...
+⏳ Processing your query...
 
-✅ Response: Search Results for 'python async programming' (5 results):
+Agent: Search Results for 'python async programming' (5 results):
 
 1. Python Async/Await Tutorial
    📝 Learn how to write non-blocking code in Python...
@@ -188,42 +174,26 @@ You: search for python async programming
    📝 Master concurrent programming with asyncio...
    🔗 https://example.com/asyncio-patterns
 
-3. Python Concurrency: Async vs Threading
-   📝 Compare different concurrency approaches...
-   🔗 https://example.com/concurrency-comparison
-
-You: find technology news
-
-🔍 Processing query...
-
-✅ Response: News Results for 'technology news' (3 articles):
-
-1. AI Breakthroughs in 2024
-   📰 Source: TechCrunch | 📅 2 hours ago
-   📝 Latest developments in artificial intelligence...
-   🔗 https://example.com/ai-breakthroughs
-
-2. GPU Market Trends
-   📰 Source: The Verge | 📅 4 hours ago
-   📝 Analysis of GPU pricing and availability...
-   🔗 https://example.com/gpu-trends
-
 You: tools
 
-📚 Available Tools:
+────────────────────────────────────────────────────────────
+AVAILABLE TOOLS (8 total):
+────────────────────────────────────────────────────────────
 
-Math Tools:
-  • add(a: float, b: float) → float
-  • subtract(a: float, b: float) → float
-  • multiply(a: float, b: float) → float
-  • divide(a: float, b: float) → float
+📐 Math Tools:
+   • add: Add two numbers
+   • subtract: Subtract two numbers
+   • multiply: Multiply two numbers
+   • divide: Divide two numbers
 
-Weather Tools:
-  • get_weather(location: str) → str
+🌤️  Weather Tools:
+   • get_weather: Get current weather for a given location
 
-Search Tools:
-  • search(query: str, max_results: int) → str
-  • search_news(query: str, max_results: int) → str
+🔍 Search Tools:
+   • search: Search the web for information
+   • search_news: Search for recent news articles
+
+────────────────────────────────────────────────────────────
 
 You: exit
 ```
@@ -232,12 +202,10 @@ You: exit
 
 ```
 ai-mcp-multi-agent/
-├── mathserver.py              # Math operations MCP server
-├── weather.py                 # Weather information MCP server (OpenWeatherMap API)
-├── search_server.py           # Search and news MCP server (DuckDuckGo)
-├── client.py                  # LangChain agent client orchestrator
-├── interactive_client.py       # Interactive REPL interface
-├── main.py                    # Example main entry point
+├── mathserver.py              # Math operations MCP server (custom)
+├── weather.py                 # Weather information MCP server (custom, OpenWeatherMap API)
+├── interactive_client.py       # Interactive REPL client (main entry point)
+├── main.py                    # Example helper file
 ├── README.md                  # This file
 ├── requirements.txt           # Python dependencies with versions
 ├── pyproject.toml             # Project configuration
@@ -248,6 +216,10 @@ ai-mcp-multi-agent/
     ├── test_math_server.py    # 45+ math operation tests
     └── test_weather_server.py # 30+ async weather tests
 ```
+
+**Note**: 
+- `search_server.py` has been removed in favor of the official `duckduckgo-mcp-server`
+- `client.py` has been removed in favor of `interactive_client.py`
 
 ## 🔧 Configuration
 
@@ -279,7 +251,6 @@ All dependencies in `requirements.txt` are pinned to ensure consistency:
 | langgraph | >=1.1.3 | Graph-based agent orchestration |
 | mcp | >=1.26.0 | MCP server/client |
 | python-dotenv | >=1.0.0 | Environment management |
-| duckduckgo-search | >=3.9.0 | Web search API |
 | requests | >=2.31.0 | HTTP client for APIs |
 | pytest | >=7.4.0 | Testing framework |
 | pytest-asyncio | >=0.21.0 | Async test support |
@@ -313,7 +284,7 @@ pytest --cov=. tests/
 - ✅ Weather server responses with async operations - 30+ tests
 - ✅ API error handling (401, 404, 500, timeouts) - 10+ tests
 - ✅ Weather data formatting and parsing - 5+ tests
-- ⏳ Search integration tests (coming soon)
+- ⏳ Search integration tests (available via official server)
 
 ## 🔄 Development Workflow
 
@@ -332,7 +303,7 @@ pytest --cov=. tests/
        pass
    ```
 
-2. **Update the client** to include the new server:
+2. **Update the client** to include the new server in `interactive_client.py`:
    ```python
    client = MultiServerMCPClient({
        "math": {...},
@@ -350,7 +321,7 @@ pytest --cov=. tests/
 
 ### Using the Search Tools
 
-The search tools are already integrated and available through the agent. Simply ask natural language questions:
+The search tools are integrated via the official DuckDuckGo MCP server. Simply ask natural language questions and the agent automatically uses the search tools:
 
 ```python
 # Examples in interactive client:
@@ -364,7 +335,7 @@ The agent will automatically choose to use the search tools when appropriate.
 
 ### Real API Integration
 
-The project already includes real API integrations:
+The project uses real API integrations:
 
 **Weather API (OpenWeatherMap):**
 - Live weather data for any location
@@ -373,10 +344,10 @@ The project already includes real API integrations:
 - Supports current weather, forecasts, and historical data
 
 **Search API (DuckDuckGo):**
+- Official MCP server (maintained by community)
 - No API key required - uses free web scraping
 - Supports general web search and news search
-- Includes automatic rate limit handling with retries
-- Fresh results with real-time indexing
+- Installed and managed via uvx
 
 ## 📊 Performance Considerations
 
@@ -384,8 +355,8 @@ The project already includes real API integrations:
 - **Error Recovery**: Graceful handling of server failures with detailed logging
 - **Model Selection**: Uses Claude Haiku (fast and cost-effective) instead of larger models
 - **Tool Caching**: Available tools are cached after initial load to improve performance
-- **Rate Limiting**: Automatic exponential backoff (2s, 4s, 8s) for rate-limited requests
 - **Connection Pooling**: Reuses connections to minimize overhead
+- **Official Servers**: Leverages maintained community servers for stability
 
 ## 🐛 Troubleshooting
 
@@ -403,22 +374,12 @@ echo "ANTHROPIC_API_KEY=your-key-here" > .env
 pip install -r requirements.txt
 ```
 
-**Issue: Search returns rate limit error**
-```
-⚠️ Search service temporarily unavailable (rate limit). Please try again in a few moments.
-```
-
-**Why this happens:**
-- DuckDuckGo's free API has strict rate limits (~1-2 requests per minute)
-- `search_news()` has more aggressive limits than `search()`
-- The agent automatically retries with exponential backoff (2s, 4s, 8s)
-
-**Solutions:**
-1. **Wait a few minutes** - Rate limits reset automatically
-2. **Use regular search** - Try `search()` instead of `search_news()`
-3. **Space out requests** - Don't make multiple searches in quick succession
-4. **Use paid API** - Switch to NewsAPI.org, Bing, or other paid services
-5. **Check network** - Ensure stable internet connection
+**Issue: Search returns rate limit error or no results**
+This is expected behavior with DuckDuckGo's free API. Solutions:
+- Wait a few minutes for rate limits to reset
+- Try rephrasing your search query
+- Use more specific search terms
+- Check that you have internet connectivity
 
 **Issue: Math server fails to start**
 ```bash
@@ -444,12 +405,6 @@ OPENWEATHER_API_KEY=your-actual-api-key
 - Review server logs for specific errors
 - Reduce the complexity of queries
 
-**Issue: Search results show "No search results found"**
-- Try rephrasing your query
-- Use more specific search terms
-- Check that you have internet connectivity
-- Try again in a few minutes if you hit rate limits
-
 ## 📚 Learning Resources
 
 - [Model Context Protocol Spec](https://github.com/anthropics/model-context-protocol)
@@ -457,23 +412,22 @@ OPENWEATHER_API_KEY=your-actual-api-key
 - [Claude API Reference](https://docs.anthropic.com/claude/reference)
 - [Async Python Best Practices](https://docs.python.org/3/library/asyncio.html)
 - [OpenWeatherMap API](https://openweathermap.org/api)
-- [DuckDuckGo Search](https://duckduckgo.com/)
+- [DuckDuckGo MCP Server](https://github.com/anthropics/mcp-servers)
 
 ## 🚦 Roadmap
 
 - [x] Real weather API integration (OpenWeatherMap)
-- [x] Web search integration (DuckDuckGo)
+- [x] Web search integration (official DuckDuckGo MCP server)
 - [x] News search functionality
 - [x] Unit and integration tests (75+ tests)
 - [x] Interactive REPL client
-- [x] Retry logic with exponential backoff
+- [x] Official server integration (DuckDuckGo)
 - [ ] GitHub Actions CI/CD pipeline
 - [ ] Docker containerization
 - [ ] Web API wrapper (FastAPI)
 - [ ] Advanced query caching
 - [ ] Performance benchmarks
 - [ ] Additional MCP servers (database, file system, etc.)
-- [ ] Paid news API integration (NewsAPI, Bing)
 
 ## 🤝 Contributing
 
@@ -500,14 +454,14 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 👨‍💻 Author
 
-Created as a demonstration of advanced MCP and LangChain integration patterns with real-world API integrations.
+Created as a demonstration of advanced MCP and LangChain integration patterns with real-world API integrations using official and custom servers.
 
 ## 🙏 Acknowledgments
 
 - [Anthropic](https://anthropic.com) for Claude and MCP
 - [LangChain](https://www.langchain.com/) team for the excellent framework
 - [OpenWeatherMap](https://openweathermap.org/) for weather API
-- [DuckDuckGo](https://duckduckgo.com/) for search services
+- [DuckDuckGo](https://duckduckgo.com/) for search services and official MCP server
 - The open-source community for inspiration and tools
 
 ---
