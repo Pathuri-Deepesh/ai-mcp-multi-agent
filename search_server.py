@@ -57,7 +57,7 @@ def search(query: str, max_results: int = 5) -> str:
         logger.info(f"Searching for: {query} (max results: {max_results})")
         
         # Retry logic with exponential backoff for rate limiting
-        max_retries = 3
+        max_retries = 10
         retry_delay = 2  # Start with 2 second delay
         
         for attempt in range(max_retries):
